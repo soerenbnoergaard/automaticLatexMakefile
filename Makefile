@@ -3,17 +3,18 @@ BIBTEX            = bibtex
 
 MAIN              = master
 BIB               = bib/kilder.bib
-TEXFILES          = $(wildcard *.tex)
+TEXFILES          = $(wildcard *.tex) $(wildcard **/*.tex)
 FIGPDFFILES       = $(patsubst %.fig, %.pdf, $(wildcard images/*.fig))
 DOTPDFFILES       = $(patsubst %.dot, %.pdf, $(wildcard images/*.dot))
+OCTAVEPDFFILES    = $(patsubst %.m, %.pdf, $(wildcard images/*.m))
 
 all : pdf
 
 pdf : $(MAIN).pdf 
 
-$(MAIN).pdf : $(TEXFILES) $(FIGPDFFILES) $(DOTPDFFILES)
+$(MAIN).pdf : $(TEXFILES) $(FIGPDFFILES) $(DOTPDFFILES) $(OCTAVEPDFFILES)
 	$(LATEX) ${MAIN}
-	if egrep -c "No file.*\.bbl|Citation.*undefined" $(MAIN).log;then\
+	@if egrep -c "No file.*\.bbl|Citation.*undefined" $(MAIN).log;then\
 		echo "** Running BibTeX **";\
 		$(BIBTEX) $(MAIN).aux;\
 		else echo "** No need to run BibTeX **";\
@@ -30,6 +31,7 @@ clean :
 	rm -f *.bbl
 	rm -f *.out
 	rm -f *.bak
+	rm -f *.blg
 	rm -f images/*.bak
 
 # XFIG
@@ -39,3 +41,8 @@ clean :
 # DOT
 %.pdf : %.dot
 	dot $< -Tpdf -o $@
+
+# OCTAVE
+%.pdf : %.m
+	octave --eval "run $<"
+	pdfcrop $*.pdf $*.pdf
